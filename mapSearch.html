@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Nearby Restaurants or Cafe Search</title>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="css/bootstrap.css"/>
+    <link rel="stylesheet" href="css/bootstrap-grid.css" />
+    <link rel="stylesheet" href="css/bootstrap-reboot.css" />
+    <style>
+      #map {
+        height: 70%;
+        width:70%;
+      }
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+    </style>
+    <script>
+      var map;
+      var infowindow;
+
+      function initMap() {
+        var us = {lat: 37.1, lng: -95.7};
+        map = new google.maps.Map(document.getElementById('map'), {
+          center: us,
+          zoom: 3
+        });
+        infowindow = new google.maps.InfoWindow();
+      }
+	
+      function getLocation(){
+    	  var loc = document.getElementById('location').value;
+    	  var geoCoder = new google.maps.Geocoder();
+    	  geoCoder.geocode({'address':loc}, function(results,status){
+    		  if(status == google.maps.GeocoderStatus.OK){
+    			  var lat = results[0].geometry.location.lat();
+    			  var lng = results[0].geometry.location.lng();
+    			  searchNearby(lat,lng);
+    		  }
+    	  });
+      }
+		
+      function searchNearby(lat, lng){
+    	  var place = new google.maps.LatLng(lat, lng);
+    	  map.setCenter(place);
+    	  map.setZoom(15);
+    	  var service = new google.maps.places.PlacesService(map);
+          service.nearbySearch({
+            location: place,
+            radius: 500,
+            types: ['restaurant' | 'cafe'],
+            keyword: 'food'
+          }, callback);
+      }
+      function callback(results, status) {
+        if (status === google.maps.places.PlacesServiceStatus.OK) {
+          for (var i = 0; i < results.length; i++) {
+            createMarker(results[i]);
+          }
+        }
+      }
+
+      function createMarker(place) {
+        var placeLoc = place.geometry.location;
+        var marker = new google.maps.Marker({
+          map: map,
+          position: placeLoc
+        });
+
+        google.maps.event.addListener(marker, 'click', function() {
+        	var rating = place.rating;
+        	if(rating == null){
+        		rating = '';
+        	}
+          infowindow.setContent('<div><strong>'+place.name+'</strong><br>Address:'+place.vicinity+'<br>Rating:'+rating +'</div>');
+          infowindow.open(map, this);
+        });
+      }
+    </script>
+  </head>
+  <body>
+  	<div id="findhotels" class="h1">
+      Find nearby restaurants in:
+    </div>
+    <div id="locationField" class="textarea">
+    	<input id="location" placeholder="Enter a city" type="text" />
+     	<button type="submit" onclick="getLocation();" class="btn" id="Search">Search</button>
+    </div>
+    <hr class="hr"/>
+    
+    <div id="map"></div>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD5HjaJoac_LUQg8E81O5Qv2eJkJHPtRkU&libraries=places&callback=initMap" async defer></script>
+  </body>
+</html>
